@@ -1,4 +1,5 @@
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzK7AoLk4DnXeftU0x6HEnLRVUx3Bak5ZWn7_aP5D44Rxq2DxGUde5ubKbbD21NJp6o/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNJeNmkK5o5-0ZrjFiqPdoe9ThKLKmYvVYKGwIT5UO--ECxP1Q3V3k5YZVywSQRjtV/exec';
+const DEMO_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNJeNmkK5o5-0ZrjFiqPdoe9ThKLKmYvVYKGwIT5UO--ECxP1Q3V3k5YZVywSQRjtV/exec?tab=Demo+Data';
 
 function parseDate(val) {
   if (!val) return '';
