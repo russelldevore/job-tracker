@@ -1,12 +1,6 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNJeNmkK5o5-0ZrjFiqPdoe9ThKLKmYvVYKGwIT5UO--ECxP1Q3V3k5YZVywSQRjtV/exec';
 const ACCESS_KEY = 'UXIExYMLVPc8TMZy6-kw-XkYXZX-8jZO';
-
-// wherever the fetch happens for live data:
-fetch(`${SCRIPT_URL}?tab=${encodeURIComponent(tabName)}&key=${ACCESS_KEY}`)
-
-// wherever the fetch happens for demo data:
-fetch(`${SCRIPT_URL}?tab=Demo+Data&key=${ACCESS_KEY}`)
-
+const DEMO_SCRIPT_URL = `${SCRIPT_URL}?tab=Demo+Data&key=${ACCESS_KEY}`;
 
 function parseDate(val) {
   if (!val) return '';
@@ -80,7 +74,7 @@ export async function fetchDemoJobs() {
 }
 
 export async function mergeFromSheet(existingJobs) {
-  const sheetJobs = await fetchFromUrl(SCRIPT_URL);
+  const sheetJobs = await fetchFromUrl(`${SCRIPT_URL}?key=${ACCESS_KEY}`);
   const existingKeys = new Set(
     existingJobs
       .map(j => j._key || j.applicationUrl || (j.company && j.role ? `${j.company}||${j.role}` : ''))
@@ -88,4 +82,25 @@ export async function mergeFromSheet(existingJobs) {
   );
   const newJobs = sheetJobs.filter(j => j._key && !existingKeys.has(j._key));
   return [...existingJobs, ...newJobs];
+}
+
+// Write a single job card back to the sheet.
+// Called automatically on every save from the UI.
+export async function saveJobToSheet(job) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: ACCESS_KEY, action: 'upsert', job }),
+    });
+    if (!res.ok) throw new Error(`Sheet write failed: ${res.status}`);
+    const result = await res.json();
+    if (result.error) throw new Error(result.error);
+    return result;
+  } catch (err) {
+    // Non-fatal — local save already succeeded, sheet write failed silently.
+    // Surface this in the UI via the returned error so the user knows.
+    console.error('saveJobToSheet error:', err);
+    throw err;
+  }
 }

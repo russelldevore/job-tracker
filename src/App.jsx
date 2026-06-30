@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { STATUSES } from './lib/sampleData';
-import { fetchDemoJobs, mergeFromSheet } from './lib/sheetsApi';
+import { fetchDemoJobs, mergeFromSheet, saveJobToSheet } from './lib/sheetsApi';
 import JobCard from './components/JobCard';
 import JobModal from './components/JobModal';
 import StatsBar from './components/StatsBar';
@@ -153,14 +153,22 @@ export default function App() {
     saveJobs(updated);
   }
 
-  function handleSave(form) {
-    if (demoMode) return;
-    const updated = !form.id
-      ? [...liveJobs, { ...form, id: String(nextId++) }]
-      : liveJobs.map(j => j.id === form.id ? form : j);
-    updateLive(updated);
-    setModal(null);
+  async function handleSave(form) {
+  if (demoMode) return;
+
+  const updated = !form.id
+    ? [...liveJobs, { ...form, id: String(nextId++) }]
+    : liveJobs.map(j => j.id === form.id ? form : j);
+
+  updateLive(updated);
+  setModal(null);
+
+  try {
+    await saveJobToSheet(form);
+  } catch {
+    setSyncMsg('Card saved locally, but sheet write failed. Changes will sync next time you hit Sync Sheet.');
   }
+}
 
   function handleDelete(id) {
     if (demoMode) return;
