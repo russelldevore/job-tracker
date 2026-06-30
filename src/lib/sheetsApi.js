@@ -1,5 +1,12 @@
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNJeNmkK5o5-0ZrjFiqPdoe9ThKLKmYvVYKGwIT5UO--ECxP1Q3V3k5YZVywSQRjtV/exec';
-const DEMO_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNJeNmkK5o5-0ZrjFiqPdoe9ThKLKmYvVYKGwIT5UO--ECxP1Q3V3k5YZVywSQRjtV/exec?tab=Demo+Data';
+const ACCESS_KEY = 'UXIExYMLVPc8TMZy6-kw-XkYXZX-8jZO';
+
+// wherever the fetch happens for live data:
+fetch(`${SCRIPT_URL}?tab=${encodeURIComponent(tabName)}&key=${ACCESS_KEY}`)
+
+// wherever the fetch happens for demo data:
+fetch(`${SCRIPT_URL}?tab=Demo+Data&key=${ACCESS_KEY}`)
+
 
 function parseDate(val) {
   if (!val) return '';
