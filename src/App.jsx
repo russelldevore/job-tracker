@@ -154,6 +154,7 @@ export default function App() {
   }
 
   async function handleSave(form) {
+    console.log('handleSave fired', form);  // add this line
   if (demoMode) return;
 
   const updated = !form.id
