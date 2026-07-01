@@ -18,6 +18,14 @@ Apps Script web app bridge, live data load from `Apply List` tab, Sync button.
 ### v0.4 — Column Alignment
 Apps Script targets `Apply List` tab specifically. Column mapping updated to match cleaned Sheet headers.
 
+### v0.6 — AI-Assisted Role Evaluation
+- Evaluate button on "To Evaluate" cards (live mode only) when a JD or URL is present
+- Calls Claude Haiku 4.5 directly from the browser via raw `fetch` with CORS bypass header
+- Returns a color-coded fit score (strong / good / partial / weak) + 2-3 sentence summary, inline on the card
+- Re-evaluate anytime; result persists in localStorage alongside the card
+- Anthropic API key stored in localStorage under `jt_claude_key` — prompted on first use via modal
+- System prompt reflects Russell's fraud/identity/AI PM background (Wells Fargo, Vesta, KForce); explicitly distinguishes must-have from nice-to-have gaps and flags adjacent vs. direct experience
+
 ### v0.5 — Sync Safety + Demo Mode
 - Hashed PIN gates the Sync Sheet button (SHA-256, client-side check)
 - Demo mode is the default view for anyone visiting the live URL — pulls from a separate `Demo Data` tab, loaded once per session
@@ -30,18 +38,7 @@ Apps Script targets `Apply List` tab specifically. Column mapping updated to mat
 
 ## Up Next
 
-### Story: AI-Assisted Role Evaluation
-**As Russell**, when I add a role with just a URL or JD pasted in, I want Claude to assess fit against my background so I can quickly decide whether to invest time applying.
-
-**Open questions to resolve before building:**
-- Output depth: quick fit score + summary vs. full breakdown (requirements, resume gaps, talking points) vs. lightweight must-have flagging
-- Output location: inline on the card in the app vs. conversational in chat
-
-**Acceptance criteria (draft, pending answers above):**
-- [ ] Evaluate action available on any "To Evaluate" card with a JD or URL present
-- [ ] Output reflects Russell's actual background (fraud/identity/AI PM, Wells Fargo, Vesta, KForce)
-- [ ] Clearly distinguishes must-have gaps from nice-to-have gaps
-- [ ] Does not overclaim — flags where experience is adjacent vs. direct
+Nothing scoped yet — see Backlog below.
 
 ---
 

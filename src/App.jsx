@@ -5,6 +5,8 @@ import JobCard from './components/JobCard';
 import JobModal from './components/JobModal';
 import StatsBar from './components/StatsBar';
 import PinModal from './components/PinModal';
+import ApiKeyModal from './components/ApiKeyModal';
+import { evaluateRole, hasApiKey } from './lib/claudeApi';
 import { format } from 'date-fns';
 
 const FILTERS = [
@@ -75,6 +77,9 @@ export default function App() {
   const [syncMsg, setSyncMsg] = useState(null);
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinAction, setPinAction] = useState(null);
+  const [evaluatingId, setEvaluatingId] = useState(null);
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [pendingEvalJobId, setPendingEvalJobId] = useState(null);
 
   const jobs = demoMode ? demoJobs : liveJobs;
 
@@ -148,13 +153,59 @@ export default function App() {
     setPinAction(null);
   }
 
+  async function doEvaluate(job) {
+    setEvaluatingId(job.id);
+    try {
+      const result = await evaluateRole(job);
+      setLiveJobs(prev => {
+        const updated = prev.map(j => j.id === job.id ? { ...j, aiEval: result } : j);
+        saveJobs(updated);
+        return updated;
+      });
+    } catch (err) {
+      if (err.message === 'INVALID_KEY') {
+        localStorage.removeItem('jt_claude_key');
+        setPendingEvalJobId(job.id);
+        setShowKeyModal(true);
+      } else if (err.message !== 'NO_API_KEY') {
+        setSyncMsg(`Evaluation failed: ${err.message}`);
+      }
+    } finally {
+      setEvaluatingId(null);
+    }
+  }
+
+  function handleEvaluate(job) {
+    if (demoMode) return;
+    if (!hasApiKey()) {
+      setPendingEvalJobId(job.id);
+      setShowKeyModal(true);
+    } else {
+      doEvaluate(job);
+    }
+  }
+
+  function handleKeyModalSave() {
+    setShowKeyModal(false);
+    const jobId = pendingEvalJobId;
+    setPendingEvalJobId(null);
+    if (jobId) {
+      const job = liveJobs.find(j => j.id === jobId);
+      if (job) doEvaluate(job);
+    }
+  }
+
+  function handleKeyModalClose() {
+    setShowKeyModal(false);
+    setPendingEvalJobId(null);
+  }
+
   function updateLive(updated) {
     setLiveJobs(updated);
     saveJobs(updated);
   }
 
   async function handleSave(form) {
-    console.log('handleSave fired', form);  // add this line
   if (demoMode) return;
 
   const updated = !form.id
@@ -194,6 +245,9 @@ export default function App() {
       )}
       {showPinModal && (
         <PinModal onSuccess={handlePinSuccess} onClose={handlePinClose} />
+      )}
+      {showKeyModal && (
+        <ApiKeyModal onSave={handleKeyModalSave} onClose={handleKeyModalClose} />
       )}
 
       <header style={{ borderBottom: '1px solid var(--border)', padding: '0 1.5rem' }}>
@@ -314,7 +368,14 @@ export default function App() {
                 </div>
               )}
               {visible.map(job => (
-                <JobCard key={job.id} job={job} onEdit={demoMode ? () => {} : j => setModal(j)} onMarkApplied={handleMarkApplied} />
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onEdit={demoMode ? () => {} : j => setModal(j)}
+                  onMarkApplied={handleMarkApplied}
+                  onEvaluate={!demoMode ? handleEvaluate : undefined}
+                  evaluating={evaluatingId === job.id}
+                />
               ))}
             </div>
           </>
